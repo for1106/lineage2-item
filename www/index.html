@@ -1,0 +1,163 @@
+<!DOCTYPE>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>天堂二</title>
+<link rel="stylesheet" src="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<style>
+table{
+	width: 500px;
+	/*border-collapse: collapse;*/
+	margin-top: 20px;
+}
+table tr{
+	height: 23px;
+}
+table tr td:nth-child(1){
+	width: 300px;
+	border-bottom: 1px solid gray;
+}
+table tr td:nth-child(2){
+	width: 100px;
+	text-align: center;
+	border-bottom: 1px solid gray;
+}
+table tr td{
+	/*border-bottom: 1px solid gray;*/
+}
+input{
+	width: 70px;
+	text-align: right;
+}
+select{
+	background: transparent;
+	width: 200px;
+	padding: 5px;
+	font-size: 16px;
+	line-height: 1;
+	border: 1;
+	border-radius: 4;
+	margin-right: 10px;
+}
+</style>
+<script>
+$(function(){
+	function detail(key,o,n){
+		if(this[key]){
+			if($.isEmptyObject(this[key][0])){
+				//最底
+				if(o[key]){
+					o[key] += n;
+				}else{
+					o[key] = n;
+				}
+			}else{
+				for(var x in this[key][0]){
+					var temp_n = Math.ceil(n/this[key][1]); //可能做一次多個
+					o = detail.call(this,x,o,this[key][0][x]*temp_n);
+				}
+			}
+		}
+
+		return o;
+	}
+
+	function make_table(data,title,flag){
+		var table = $('<table>');
+
+		$('<tr>').append(
+			$('<th>').attr('colspan',flag?3:2).html(title)
+		).appendTo(table);
+
+		for(var x in data){
+			var tr = $('<tr>').appendTo(table);
+			$('<td>').html(x).appendTo(tr);
+			$('<td>').html(data[x]).appendTo(tr);
+
+			if(flag){
+				var input = $('<input type="number">')
+					.attr('min',0).val(0)
+					.on('change',function(){
+						if($(this).val() == ''){
+							$(this).val(0);
+						}
+
+						make_total();
+					});
+				$('<td>').html(input).appendTo(tr);
+			}
+		}
+
+		return table;
+	}
+
+	function make_total(){
+		var total = 0;
+		$('input').each(function(){
+			var money = $(this).val();
+			var num = $(this).parent().prev().html();
+			total += parseInt(money)*parseInt(num);
+		});
+
+		$('.total').html(total);
+	}
+
+	function is_exist(x,y){
+		return this[y] //有此物品細項
+				&& !$.isEmptyObject(this[y][0]); //經典版開放
+	}
+
+	$.getJSON('./json/item.json',function(item){
+		$.getJSON('./json/list.json',function(list){
+			var select = $('<select>');
+			for(var x in item){
+				var flag = false;
+				for(var y in item[x]){
+					if(is_exist.call(list,x,y)){
+						flag = true;
+					}
+				}
+
+				if(flag){
+					select.append($('<option>').html(x));
+				}
+			}
+
+			select.on('change',function(){
+				var obj = $(this);
+
+				var select = $('<select>');
+				for(var x in item[obj.val()]){
+					if(is_exist.call(list,obj.val(),x)){
+						select.append($('<option>').html(x));
+					}
+				}
+
+				select.on('change',function(){
+					var obj = $(this);
+					var data = detail.call(list,obj.val(),{},1);
+
+					$('.category_detail').empty()
+					.append(make_table(list[obj.val()][0],'總資料',false))
+					.append(make_table(data,'細項資料',true))
+					.append(make_table({'金額':$('<span class="total">')},'總結',false));
+				});
+
+				obj.siblings().remove();
+				obj.after(select);
+				select.trigger('change');
+			});
+
+			$('.category').html(select);
+			select.trigger('change');
+		});
+	});
+});
+</script>
+</head>
+<body>
+<div class="category"></div>
+<div class="category_detail"></div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "chiso-l2",
+  "version": "1.0.0",
+  "description": "天堂二裝備製造",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "game"
+  ],
+  "author": "chiso",
+  "license": "MIT",
+  "dependencies": {
+    "crawler": "^0.4.3",
+    "express": "^4.13.4",
+    "lodash": "^4.11.2"
+  }
+}
